@@ -1,0 +1,35 @@
+name: PHP Deprecation Detector
+# See https://github.com/wapmorgan/PhpDeprecationDetector
+
+on:
+  pull_request:
+    paths:
+      - 'php/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'php/**'
+
+jobs:
+  phpdd:
+    name: PHP Deprecation Detector
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up php
+        uses: shivammathur/setup-php@bf6b4fbd49ca58e4608c9c89fba0b8d90bd2a39f # v2
+        with:
+          php-version: 8.4
+          extensions: apcu
+          coverage: none
+
+      - name: Run script
+        run: |
+          set -x
+          cd php
+          composer install
+          composer run php-deprecation-detector | tee -i ./phpdd.log
+          if grep "Total issues:" ./phpdd.log; then
+            exit 1
+          fi

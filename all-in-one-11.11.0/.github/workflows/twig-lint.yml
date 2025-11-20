@@ -1,0 +1,40 @@
+name: Twig Lint
+
+on:
+  pull_request:
+    paths:
+      - '**.twig'
+  push:
+    branches:
+      - main
+    paths:
+      - '**.twig'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lint-twig-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  twig-lint:
+    runs-on: ubuntu-latest
+    name: twig-lint
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up php ${{ matrix.php-versions }}
+        uses: shivammathur/setup-php@bf6b4fbd49ca58e4608c9c89fba0b8d90bd2a39f # v2
+        with:
+          php-version: 8.4
+          extensions: apcu
+          coverage: none
+
+      - name: twig lint
+        run: |
+          cd php
+          composer install
+          composer run lint:twig
