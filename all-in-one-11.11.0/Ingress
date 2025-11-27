@@ -1,0 +1,4 @@
+  annotations:
+    nginx.ingress.kubernetes.io/session-cookie-name: "nextcloud_session"
+    nginx.ingress.kubernetes.io/session-cookie-path: "/"
+    nginx.ingress.kubernetes.io/session-affinity: "true"
