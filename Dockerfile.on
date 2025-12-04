@@ -150,7 +150,7 @@ RUN set -ex; \
     apk del --no-network .fetch-deps
 
 # --------- Copy entrypoint & config như gốc ---------
-COPY entrypoint.sh upgrade.exclude /
+COPY *.sh upgrade.exclude /
 COPY config/* /usr/src/nextcloud/config/
 
 ENTRYPOINT ["/entrypoint.sh"]
