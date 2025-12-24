@@ -1,0 +1,98 @@
+/* =========================================================
+   vDrive Christmas Theme – FINAL
+   Compatible with Nextcloud (body-scoped variables)
+   ========================================================= */
+
+/* ---------- Global variables (fallback) ---------- */
+:root {
+  --image-background-christmas: linear-gradient(
+    135deg,
+    #0b2d1c 0%,   /* dark green */
+    #14532d 35%,  /* christmas green */
+    #7f1d1d 70%,  /* dark red */
+    #3f0d12 100%  /* deep red */
+  );
+
+  --color-border: rgba(248, 113, 113, 0.35);
+  --color-primary: #b91c1c;   /* red */
+  --color-success: #15803d;   /* green */
+
+  --snow-opacity: 0.45;
+}
+
+/* ---------- IMPORTANT: Nextcloud really uses body ---------- */
+body {
+  --image-background-default: var(--image-background-christmas) !important;
+  --image-background-christmas: var(--image-background-christmas);
+}
+
+/* =========================================================
+   TOP BAR / HEADER
+   ========================================================= */
+#header {
+  background-image: var(--image-background-christmas) !important;
+  --background-image-invert-if-bright: no;
+
+  --color-primary-element-text: #ffffff;
+  --color-primary-text: #ffffff;
+}
+
+/* =========================================================
+   LOGIN PAGE
+   ========================================================= */
+#body-login {
+  background: var(--image-background-christmas) !important;
+  background-attachment: fixed !important;
+}
+
+/* =========================================================
+   CARDS / PROFILE
+   ========================================================= */
+.preview-card__header,
+.profile__primary-action-button {
+  background-image: var(--image-background-christmas) !important;
+}
+
+/* =========================================================
+   FILES APP – ICONS
+   ========================================================= */
+
+/* Folder icon – Christmas gold */
+.files-list__row-icon .folder-icon svg {
+  fill: #fbbf24;
+}
+
+/* Checkbox icons */
+.checkbox-radio-switch__icon svg {
+  fill: var(--color-text-maxcontrast);
+}
+
+/* =========================================================
+   APP MENU
+   ========================================================= */
+
+/* Active app indicator */
+.app-menu-main
+  .app-menu-entry.app-menu-entry__active::before {
+  background-color: #fef3c7 !important;
+}
+
+/* =========================================================
+   SNOW CANVAS (used by JS)
+   ========================================================= */
+#snow-canvas {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  opacity: var(--snow-opacity);
+}
+
+/* =========================================================
+   OPTIONAL SAFETY (do NOT theme whole body background)
+   ========================================================= */
+/*
+html, body {
+  background: transparent !important;
+}
+*/
