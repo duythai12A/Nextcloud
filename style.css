@@ -53,8 +53,7 @@ body#body-login {
 }
 
 /* =========================================================
-   3) CONTENT BACKGROUND (đây là phần bạn đang thiếu)
-   Đặt overlay phía SAU nội dung để KHÔNG làm mờ chữ
+   3) CONTENT BACKGROUND (overlay phía sau để KHÔNG làm mờ chữ)
    ========================================================= */
 
 /* tạo 1 lớp nền phía sau toàn UI */
@@ -74,7 +73,11 @@ body::before {
 }
 
 /* đẩy các khối UI lên trên overlay */
-#header { position: relative; z-index: 1000; }
+#header {
+  position: relative;
+  z-index: 1000;
+}
+
 #content,
 #app-content,
 #app-content-vue,
@@ -119,6 +122,7 @@ body::before {
   z-index: 9999;
   opacity: var(--snow-opacity);
 }
+
 /* =========================================================
    LEFT SIDEBAR / APP NAVIGATION – force transparent/overlay
    ========================================================= */
@@ -143,17 +147,16 @@ body::before {
   background: transparent !important;
 }
 
-/* Nếu bạn muốn sidebar có nền Noel nhạt riêng (thay vì “trong suốt”) */
+/* Nếu muốn sidebar có nền Noel nhạt riêng (thay vì “trong suốt”) */
 #app-navigation,
 #app-navigation-vue,
 .app-navigation {
   background-image: var(--christmas-bg) !important;
-  opacity: 1 !important;
-}
 
-/* Nhưng để chữ không bị mờ, dùng alpha bằng background-color thay vì opacity */
-#app-navigation,
-#app-navigation-vue,
-.app-navigation {
-  background-color: rgba(255, 255, 255, 0.00) !important; /* giữ chữ sắc */
+  /* ĐỪNG dùng opacity cho cả sidebar (sẽ làm mờ chữ).
+     Nếu cần nhạt hơn, chỉnh overlay opacity ở :root */
+  opacity: 1 !important;
+
+  /* giữ chữ sắc */
+  background-color: rgba(255, 255, 255, 0.00) !important;
 }
