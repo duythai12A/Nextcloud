@@ -1,43 +1,28 @@
 /* =========================================================
-   vDrive Christmas Theme – FINAL (Readable)
+   vDrive Christmas Theme – HARD OVERRIDE (NO OVERLAY)
    ========================================================= */
 
 :root {
-  /* Nhạt hơn bản trước */
   --christmas-bg: linear-gradient(
     135deg,
-    #123026 0%,
-    #1b4d34 35%,
-    #6b1f1f 70%,
-    #2a0b10 100%
+    #153a2e 0%,
+    #215a41 35%,
+    #6f2a2a 70%,
+    #2d1215 100%
   );
 
-  --christmas-gold: #fbbf24;
-  --christmas-red: #b91c1c;
-  --christmas-green: #15803d;
-
-  /* Overlay nền cho khu vực content: càng nhỏ càng nhạt */
-  --christmas-overlay-opacity: 0.055;
-
-  /* Snow */
-  --snow-opacity: 0.85;
-}
-
-/* Nextcloud hay ăn biến ở body */
-body,
-body#body-user,
-body#body-login {
-  --image-background-default: var(--christmas-bg) !important;
+  --sidebar-text: rgba(255,255,255,0.95);
+  --sidebar-icon: rgba(255,255,255,0.90);
 }
 
 /* =========================================================
-   1) HEADER / TOPBAR (ăn chắc)
+   HEADER
    ========================================================= */
 #header,
 #header .header-left,
 #header .header-right {
-  background-image: var(--christmas-bg) !important;
   background: var(--christmas-bg) !important;
+  background-image: var(--christmas-bg) !important;
 
   --background-image-invert-if-bright: no;
   --color-primary-text: #ffffff;
@@ -45,118 +30,81 @@ body#body-login {
 }
 
 /* =========================================================
-   2) LOGIN PAGE
+   LOGIN PAGE
    ========================================================= */
 #body-login {
   background: var(--christmas-bg) !important;
-  background-attachment: fixed !important;
 }
 
 /* =========================================================
-   3) CONTENT BACKGROUND (overlay phía sau để KHÔNG làm mờ chữ)
+   LEFT SIDEBAR – THIS IS THE KEY
+   ========================================================= */
+#app-navigation,
+#app-navigation-vue,
+.app-navigation,
+.app-navigation__content,
+.app-navigation-main {
+  background: var(--christmas-bg) !important;
+  background-image: var(--christmas-bg) !important;
+  color: var(--sidebar-text) !important;
+}
+
+/* Sidebar text */
+#app-navigation a,
+#app-navigation-vue a,
+.app-navigation a,
+.app-navigation-entry__title {
+  color: var(--sidebar-text) !important;
+}
+
+/* Sidebar icons */
+#app-navigation svg,
+#app-navigation-vue svg,
+.app-navigation svg {
+  fill: var(--sidebar-icon) !important;
+}
+
+/* Active entry */
+.app-navigation-entry--active {
+  background-color: rgba(255,255,255,0.10) !important;
+}
+
+/* =========================================================
+   FILES CONTENT COLUMN + GAP FIX
    ========================================================= */
 
-/* tạo 1 lớp nền phía sau toàn UI */
-body {
-  position: relative;
-}
-
-/* overlay Noel rất nhạt */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background: var(--christmas-bg);
-  opacity: var(--christmas-overlay-opacity);
-  pointer-events: none;
-  z-index: 0; /* nằm dưới content */
-}
-
-/* đẩy các khối UI lên trên overlay */
-#header {
-  position: relative;
-  z-index: 1000;
-}
-
+/* Đây chính là “khe trắng” bạn thấy */
 #content,
 #app-content,
 #app-content-vue,
 .app-content,
-.app-content-wrapper {
-  position: relative;
-  z-index: 1;
-  background: transparent !important; /* cho overlay hiện nhẹ */
+.app-content-wrapper,
+.files-container,
+.files-list,
+.files-table {
+  background: var(--christmas-bg) !important;
+}
+
+/* Card/file rows giữ nền sáng để dễ đọc */
+.files-list__row,
+.files-list__row:hover,
+.files-list__row--active {
+  background: rgba(255,255,255,0.92) !important;
 }
 
 /* =========================================================
-   4) CARDS / PROFILE
-   ========================================================= */
-.preview-card__header,
-.profile__primary-action-button {
-  background-image: var(--christmas-bg) !important;
-}
-
-/* =========================================================
-   5) FILES ICONS
+   FILE ICONS
    ========================================================= */
 .files-list__row-icon .folder-icon svg {
-  fill: var(--christmas-gold) !important;
-}
-
-.checkbox-radio-switch__icon svg {
-  fill: var(--color-text-maxcontrast);
-}
-
-/* Active app indicator */
-.app-menu-main .app-menu-entry.app-menu-entry__active::before {
-  background-color: #fef3c7 !important;
+  fill: #fbbf24 !important;
 }
 
 /* =========================================================
-   6) SNOW CANVAS
+   SNOW CANVAS
    ========================================================= */
 #snow-canvas {
   pointer-events: none;
   position: fixed;
   inset: 0;
   z-index: 9999;
-  opacity: var(--snow-opacity);
-}
-
-/* =========================================================
-   LEFT SIDEBAR / APP NAVIGATION – force transparent/overlay
-   ========================================================= */
-
-/* Wrapper sidebar (nhiều phiên bản Nextcloud khác selector) */
-#app-navigation,
-#app-navigation-vue,
-.app-navigation,
-.app-navigation__content,
-.app-navigation-main,
-#app-navigation .app-navigation,
-#app-navigation-vue .app-navigation {
-  background: transparent !important;           /* cho overlay body::before hiện */
-  background-color: transparent !important;
-}
-
-/* Một số bản có container riêng cho navigation */
-.app-navigation-entry,
-.app-navigation-entry__content,
-.app-navigation-entry__title,
-#app-navigation .app-navigation-entry {
-  background: transparent !important;
-}
-
-/* Nếu muốn sidebar có nền Noel nhạt riêng (thay vì “trong suốt”) */
-#app-navigation,
-#app-navigation-vue,
-.app-navigation {
-  background-image: var(--christmas-bg) !important;
-
-  /* ĐỪNG dùng opacity cho cả sidebar (sẽ làm mờ chữ).
-     Nếu cần nhạt hơn, chỉnh overlay opacity ở :root */
-  opacity: 1 !important;
-
-  /* giữ chữ sắc */
-  background-color: rgba(255, 255, 255, 0.00) !important;
 }
