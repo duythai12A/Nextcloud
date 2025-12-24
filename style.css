@@ -119,3 +119,41 @@ body::before {
   z-index: 9999;
   opacity: var(--snow-opacity);
 }
+/* =========================================================
+   LEFT SIDEBAR / APP NAVIGATION – force transparent/overlay
+   ========================================================= */
+
+/* Wrapper sidebar (nhiều phiên bản Nextcloud khác selector) */
+#app-navigation,
+#app-navigation-vue,
+.app-navigation,
+.app-navigation__content,
+.app-navigation-main,
+#app-navigation .app-navigation,
+#app-navigation-vue .app-navigation {
+  background: transparent !important;           /* cho overlay body::before hiện */
+  background-color: transparent !important;
+}
+
+/* Một số bản có container riêng cho navigation */
+.app-navigation-entry,
+.app-navigation-entry__content,
+.app-navigation-entry__title,
+#app-navigation .app-navigation-entry {
+  background: transparent !important;
+}
+
+/* Nếu bạn muốn sidebar có nền Noel nhạt riêng (thay vì “trong suốt”) */
+#app-navigation,
+#app-navigation-vue,
+.app-navigation {
+  background-image: var(--christmas-bg) !important;
+  opacity: 1 !important;
+}
+
+/* Nhưng để chữ không bị mờ, dùng alpha bằng background-color thay vì opacity */
+#app-navigation,
+#app-navigation-vue,
+.app-navigation {
+  background-color: rgba(255, 255, 255, 0.00) !important; /* giữ chữ sắc */
+}
