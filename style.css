@@ -1,40 +1,43 @@
 /* =========================================================
-   vDrive Christmas Theme – FINAL (FORCED)
+   vDrive Christmas Theme – FINAL (Readable)
    ========================================================= */
 
-/* ---------- VARIABLES (fallback) ---------- */
 :root {
+  /* Nhạt hơn bản trước */
   --christmas-bg: linear-gradient(
     135deg,
-    #0b2d1c 0%,
-    #14532d 35%,
-    #7f1d1d 70%,
-    #3f0d12 100%
+    #123026 0%,
+    #1b4d34 35%,
+    #6b1f1f 70%,
+    #2a0b10 100%
   );
 
   --christmas-gold: #fbbf24;
   --christmas-red: #b91c1c;
   --christmas-green: #15803d;
 
-  --snow-opacity: 0.85; /* RÕ */
+  /* Overlay nền cho khu vực content: càng nhỏ càng nhạt */
+  --christmas-overlay-opacity: 0.055;
+
+  /* Snow */
+  --snow-opacity: 0.85;
 }
 
-/* ---------- NEXTCLOUD ACTUALLY USES BODY ---------- */
+/* Nextcloud hay ăn biến ở body */
 body,
 body#body-user,
 body#body-login {
   --image-background-default: var(--christmas-bg) !important;
-  --image-background-christmas: var(--christmas-bg) !important;
 }
 
 /* =========================================================
-   TOP BAR / HEADER  (CHẮC CHẮN ĐỔI)
+   1) HEADER / TOPBAR (ăn chắc)
    ========================================================= */
 #header,
 #header .header-left,
 #header .header-right {
-  background: var(--christmas-bg) !important;
   background-image: var(--christmas-bg) !important;
+  background: var(--christmas-bg) !important;
 
   --background-image-invert-if-bright: no;
   --color-primary-text: #ffffff;
@@ -42,45 +45,72 @@ body#body-login {
 }
 
 /* =========================================================
-   LOGIN PAGE (RÕ NGAY)
+   2) LOGIN PAGE
    ========================================================= */
 #body-login {
   background: var(--christmas-bg) !important;
-  background-image: var(--christmas-bg) !important;
   background-attachment: fixed !important;
 }
 
 /* =========================================================
-   CARDS / PROFILE
+   3) CONTENT BACKGROUND (đây là phần bạn đang thiếu)
+   Đặt overlay phía SAU nội dung để KHÔNG làm mờ chữ
+   ========================================================= */
+
+/* tạo 1 lớp nền phía sau toàn UI */
+body {
+  position: relative;
+}
+
+/* overlay Noel rất nhạt */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: var(--christmas-bg);
+  opacity: var(--christmas-overlay-opacity);
+  pointer-events: none;
+  z-index: 0; /* nằm dưới content */
+}
+
+/* đẩy các khối UI lên trên overlay */
+#header { position: relative; z-index: 1000; }
+#content,
+#app-content,
+#app-content-vue,
+.app-content,
+.app-content-wrapper {
+  position: relative;
+  z-index: 1;
+  background: transparent !important; /* cho overlay hiện nhẹ */
+}
+
+/* =========================================================
+   4) CARDS / PROFILE
    ========================================================= */
 .preview-card__header,
 .profile__primary-action-button {
-  background: var(--christmas-bg) !important;
   background-image: var(--christmas-bg) !important;
 }
 
 /* =========================================================
-   FILES APP – ICONS
+   5) FILES ICONS
    ========================================================= */
 .files-list__row-icon .folder-icon svg {
   fill: var(--christmas-gold) !important;
 }
 
-/* Checkbox icons */
 .checkbox-radio-switch__icon svg {
   fill: var(--color-text-maxcontrast);
 }
 
-/* =========================================================
-   APP MENU ACTIVE INDICATOR
-   ========================================================= */
-.app-menu-main
-  .app-menu-entry.app-menu-entry__active::before {
+/* Active app indicator */
+.app-menu-main .app-menu-entry.app-menu-entry__active::before {
   background-color: #fef3c7 !important;
 }
 
 /* =========================================================
-   SNOW CANVAS (JS WILL USE THIS)
+   6) SNOW CANVAS
    ========================================================= */
 #snow-canvas {
   pointer-events: none;
@@ -89,13 +119,3 @@ body#body-login {
   z-index: 9999;
   opacity: var(--snow-opacity);
 }
-
-/* =========================================================
-   DEBUG (REMOVE AFTER CONFIRM)
-   Uncomment if you ever doubt CSS is applied
-   ========================================================= */
-/*
-#header {
-  outline: 4px solid red !important;
-}
-*/
