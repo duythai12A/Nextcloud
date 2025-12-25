@@ -1,43 +1,24 @@
 /* =========================================================
-   vDrive Tết Bính Ngọ Theme (HARD OVERRIDE)
-   Đỏ - Vàng, trang trí Tết, hợp Nextcloud/vDrive
+   vDrive Tết Theme – SINGLE COLOR (CAM–VÀNG)
    ========================================================= */
 
 :root {
-  /* Nền Tết: đỏ đậm -> đỏ gạch -> vàng ấm */
-  --tet-bg: linear-gradient(
-    135deg,
-    #7a0b12 0%,
-    #b1121b 38%,
-    #d97706 72%,
-    #7c2d12 100%
-  );
+  /* MÀU DUY NHẤT */
+  --tet-bg: #f59e0b;        /* cam vàng chính */
+  --tet-bg-dark: #d97706;   /* cam vàng đậm hơn (hover/active) */
 
-  /* Màu nhấn */
-  --tet-gold: #fbbf24;
-  --tet-gold-2: #fde68a;
-  --tet-red: #b91c1c;
-  --tet-green: #166534;
-
-  /* Sidebar */
-  --sidebar-text: rgba(255,255,255,0.96);
-  --sidebar-icon: rgba(255,255,255,0.92);
-
-  /* Layer trang trí (nhạt để không mờ chữ) */
-  --tet-decor-opacity: 0.22;
-
-  /* Confetti/Lì xì opacity */
-  --tet-fx-opacity: 0.9;
+  --sidebar-text: #ffffff;
+  --sidebar-icon: #ffffff;
 }
 
 /* =========================================================
-   HEADER
+   HEADER / TOPBAR
    ========================================================= */
 #header,
 #header .header-left,
 #header .header-right {
   background: var(--tet-bg) !important;
-  background-image: var(--tet-bg) !important;
+  background-image: none !important;
 
   --background-image-invert-if-bright: no;
   --color-primary-text: #ffffff;
@@ -52,23 +33,30 @@
 }
 
 /* =========================================================
-   LEFT SIDEBAR (cột trái) + “khe” cùng màu
+   LEFT SIDEBAR + CONTENT + KHE (CÙNG 1 MÀU)
    ========================================================= */
 #app-navigation,
 #app-navigation-vue,
 .app-navigation,
 .app-navigation__content,
 .app-navigation-main,
+
 #content,
 #app-content,
 #app-content-vue,
 .app-content,
-.app-content-wrapper {
+.app-content-wrapper,
+
+.files-container,
+.files-list,
+.files-table {
   background: var(--tet-bg) !important;
-  background-image: var(--tet-bg) !important;
+  background-image: none !important;
 }
 
-/* Sidebar text + icons trắng */
+/* =========================================================
+   SIDEBAR TEXT + ICON (TRẮNG)
+   ========================================================= */
 #app-navigation,
 #app-navigation-vue,
 .app-navigation {
@@ -88,77 +76,44 @@
   fill: var(--sidebar-icon) !important;
 }
 
-/* Active entry */
+/* Active item */
 .app-navigation-entry--active {
-  background-color: rgba(255,255,255,0.12) !important;
+  background-color: rgba(255,255,255,0.18) !important;
 }
 
 /* =========================================================
-   FILE LIST: giữ nền hàng sáng để dễ đọc
+   FILE LIST – GIỮ TRẮNG ĐỂ DỄ ĐỌC
    ========================================================= */
 .files-list__row,
 .files-list__row:hover,
 .files-list__row--active {
-  background: rgba(255,255,255,0.92) !important;
+  background: #ffffff !important;
 }
 
-/* Folder icon vàng */
+/* Folder icon vàng đậm */
 .files-list__row-icon .folder-icon svg {
-  fill: var(--tet-gold) !important;
+  fill: #d97706 !important;
 }
 
-/* Nút create/upload thêm “Tết” nhẹ */
+/* =========================================================
+   BUTTON / HOVER NHẸ
+   ========================================================= */
 button,
-.button,
-#app-navigation .button,
-#app-navigation-vue .button {
-  border-color: rgba(255,255,255,0.20) !important;
+.button {
+  background-color: #d97706 !important;
+  color: #ffffff !important;
+  border-color: rgba(255,255,255,0.25) !important;
+}
+
+button:hover,
+.button:hover {
+  background-color: #b45309 !important;
 }
 
 /* =========================================================
-   TẾT DECOR OVERLAY (hoa/đèn lồng dạng CSS gradient nhẹ)
-   Không dùng ảnh để bạn deploy nhanh
+   DISABLE ALL OVERLAY / DECOR / EFFECT BACKGROUND
    ========================================================= */
-body {
-  position: relative;
-}
-
-/* lớp decor nhạt (hoa mai/đèn lồng trừu tượng) */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  opacity: var(--tet-decor-opacity);
-
-  /* pattern nhẹ: chấm vàng + quầng đỏ */
-  background:
-    radial-gradient(circle at 12% 18%, rgba(253,230,138,0.85) 0 3px, transparent 4px),
-    radial-gradient(circle at 22% 28%, rgba(253,230,138,0.65) 0 2px, transparent 3px),
-    radial-gradient(circle at 86% 22%, rgba(253,230,138,0.75) 0 3px, transparent 4px),
-    radial-gradient(circle at 78% 30%, rgba(253,230,138,0.55) 0 2px, transparent 3px),
-    radial-gradient(circle at 10% 78%, rgba(255,255,255,0.35) 0 2px, transparent 3px),
-    radial-gradient(circle at 90% 82%, rgba(255,255,255,0.30) 0 2px, transparent 3px),
-    radial-gradient(ellipse at 50% 100%, rgba(185,28,28,0.35) 0 45%, transparent 60%),
-    radial-gradient(ellipse at 50% 0%, rgba(217,119,6,0.28) 0 35%, transparent 55%);
-}
-
-/* đảm bảo UI nằm trên decor */
-#header { position: relative; z-index: 1000; }
-#content, #app-content, #app-content-vue, .app-content, .app-content-wrapper,
-#app-navigation, #app-navigation-vue, .app-navigation {
-  position: relative;
-  z-index: 1;
-}
-
-/* =========================================================
-   FX CANVAS (Confetti/Lì xì)
-   ========================================================= */
-#tet-canvas {
-  pointer-events: none;
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  opacity: var(--tet-fx-opacity);
+body::before,
+body::after {
+  display: none !important;
 }
