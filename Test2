@@ -1,0 +1,59 @@
+<?php
+declare(strict_types=1);
+
+namespace OCA\SvgSanitizer\Listener;
+
+use OCP\EventDispatcher\Event;
+use OCP\EventDispatcher\IEventListener;
+use OCP\Http\Client\IClientService;
+use OCP\Files\Node;
+
+class SvgSanitizeListener implements IEventListener {
+
+  public function __construct(
+    private IClientService $clientService
+  ) {}
+
+  public function handle(Event $event): void {
+    // [Chưa xác minh] lấy node từ event tuỳ class; thường có getNode()
+    if (!method_exists($event, 'getNode')) {
+      return;
+    }
+
+    /** @var Node $node */
+    $node = $event->getNode();
+
+    // Chỉ xử lý file .svg
+    if (method_exists($node, 'getExtension') && strtolower((string)$node->getExtension()) !== 'svg') {
+      return;
+    }
+
+    // [Suy luận] Nên giới hạn size SVG để tránh DoS
+    if (method_exists($node, 'getSize') && $node->getSize() > 5 * 1024 * 1024) {
+      // Reject hoặc bỏ qua
+      throw new \RuntimeException('SVG too large');
+    }
+
+    // Đọc content
+    $svg = $node->getContent();
+
+    // Gọi sanitizer service nội bộ
+    $client = $this->clientService->newClient();
+    $resp = $client->post('http://svg-sanitizer.nextcloud.svc.cluster.local:3000/sanitize', [
+      'headers' => ['Content-Type' => 'image/svg+xml'],
+      'body' => $svg,
+      'timeout' => 3,
+    ]);
+
+    $data = json_decode((string)$resp->getBody(), true);
+    if (!is_array($data) || empty($data['ok']) || !isset($data['clean'])) {
+      throw new \RuntimeException('SVG sanitize failed');
+    }
+
+    // Option A: luôn ghi đè bằng bản clean
+    $node->putContent((string)$data['clean']);
+
+    // Option B: nếu dirty==true thì reject (thay vì clean)
+    // if (!empty($data['dirty'])) { $node->delete(); throw new \RuntimeException('Malicious SVG blocked'); }
+  }
+}
