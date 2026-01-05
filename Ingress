@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nextcloud
+  namespace: <ns>
+  annotations:
+    nginx.ingress.kubernetes.io/server-snippet: |
+      location ~ ^/(vdrive/)?status\.php$ {
+        allow 10.0.0.0/8;
+        allow 172.16.0.0/12;
+        allow 192.168.0.0/16;
+        deny all;
+      }
+spec:
+  rules:
+  - host: nextcloud.example.com
+    http:
+      paths:
+      - path: /vdrive
+        pathType: Prefix
+        backend:
+          service:
+            name: nextcloud
+            port:
+              number: 80
