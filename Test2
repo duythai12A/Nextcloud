@@ -1,26 +1,79 @@
+<?php
+declare(strict_types=1);
 
 namespace OCA\SvgSanitizer\Listener;
 
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
-use OCP\Files\Node;
 use OCP\Http\Client\IClientService;
 use OCP\ILogger;
+use OCP\Files\Node;
 
 class SvgSanitizeListener implements IEventListener {
 
-    public function __construct(
-        private IClientService $client,
-        private ILogger $logger
-    ) {}
+    private IClientService $clientService;
+    private ILogger $logger;
+
+    public function __construct(IClientService $clientService, ILogger $logger) {
+        $this->clientService = $clientService;
+        $this->logger = $logger;
+    }
 
     public function handle(Event $event): void {
-        if (!method_exists($event, 'getNode')) return;
+        if (!method_exists($event, 'getNode')) {
+            return;
+        }
 
+        /** @var Node $node */
         $node = $event->getNode();
-        if (strtolower((string)$node->getExtension()) !== 'svg') return;
 
-        $this->logger->warning('SVG_SANITIZER: listener triggered ' . $node->getName());
-        // (logic sanitize ở đây)
+        // chỉ xử lý file .svg
+        if (!method_exists($node, 'getExtension')) {
+            return;
+        }
+        $ext = strtolower((string)$node->getExtension());
+        if ($ext !== 'svg') {
+            return;
+        }
+
+        $this->logger->warning('SVG_SANITIZER: triggered for ' . $node->getName());
+
+        // giới hạn size 1MB
+        if (method_exists($node, 'getSize')) {
+            $size = (int)$node->getSize();
+            if ($size > 1024 * 1024) {
+                $this->logger->warning('SVG_SANITIZER: too large, deleting ' . $node->getName());
+                $node->delete();
+                throw new \RuntimeException('SVG blocked: too large');
+            }
+        }
+
+        $svg = (string)$node->getContent();
+
+        $client = $this->clientService->newClient();
+        $resp = $client->post('http://svg-sanitizer:3000/sanitize', [
+            'headers' => ['Content-Type' => 'image/svg+xml'],
+            'body' => $svg,
+            'timeout' => 3,
+        ]);
+
+        $data = json_decode((string)$resp->getBody(), true);
+
+        if (!is_array($data) || empty($data['ok']) || !isset($data['clean'])) {
+            $this->logger->error('SVG_SANITIZER: sanitizer failed, deleting ' . $node->getName());
+            $node->delete();
+            throw new \RuntimeException('SVG blocked: sanitize failed');
+        }
+
+        // policy: nếu dirty -> xóa luôn
+        if (!empty($data['dirty'])) {
+            $this->logger->warning('SVG_SANITIZER: malicious SVG detected, deleting ' . $node->getName());
+            $node->delete();
+            throw new \RuntimeException('SVG blocked: malicious content');
+        }
+
+        // optional: ghi đè bản clean
+        $node->putContent((string)$data['clean']);
+        $this->logger->warning('SVG_SANITIZER: sanitized OK ' . $node->getName());
     }
 }
