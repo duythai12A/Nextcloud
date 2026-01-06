@@ -1,7 +1,7 @@
 
 {
 	"info": {
-		"_postman_id": "49d4402e-24c6-45d7-9f0e-e5ecd094b9ea",
+		"_postman_id": "a8411365-2970-4485-a67f-6d1fd7f993ed",
 		"name": "otp_sso Copy",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -74,7 +74,7 @@
 						},
 						{
 							"key": "otpCode",
-							"value": "382079",
+							"value": "415278",
 							"type": "text"
 						}
 					],
@@ -134,7 +134,7 @@
 						},
 						{
 							"key": "password",
-							"value": "test123",
+							"value": "123456aA@",
 							"type": "text"
 						}
 					]
