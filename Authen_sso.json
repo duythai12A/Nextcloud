@@ -1,0 +1,162 @@
+```
+{
+	"info": {
+		"_postman_id": "7a7e98e4-eae4-485c-a400-832cd89c5a4c",
+		"name": "otp_sso",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "send-otp",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "",
+						"value": "",
+						"disabled": true
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"url": {
+					"raw": "https://sso2.viettel.vn/v2/otp-request?username=4811889&locale=vi",
+					"protocol": "https",
+					"host": [
+						"sso2",
+						"viettel",
+						"vn"
+					],
+					"path": [
+						"v2",
+						"otp-request"
+					],
+					"query": [
+						{
+							"key": "username",
+							"value": "4811889"
+						},
+						{
+							"key": "locale",
+							"value": "vi"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "verification-otp",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					},
+					{
+						"key": "X-gravitee-api-key",
+						"value": "d6b3414e-30ef-4715-bee0-e4740c164d7a",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "username",
+							"value": "48118888",
+							"type": "text"
+						},
+						{
+							"key": "otpCode",
+							"value": " 382079",
+							"type": "text"
+						}
+					],
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://sso2.viettel.vn/v1/otp-validate",
+					"protocol": "https",
+					"host": [
+						"sso2",
+						"viettel",
+						"vn"
+					],
+					"path": [
+						"v1",
+						"otp-validate"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "v1/ticket",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "username",
+							"value": "481188",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "PhoCo@0209",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://auth.viettel.vn/auth/v1/tickets",
+					"protocol": "https",
+					"host": [
+						"auth",
+						"viettel",
+						"vn"
+					],
+					"path": [
+						"auth",
+						"v1",
+						"tickets"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}
+```
