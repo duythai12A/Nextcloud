@@ -1,8 +1,8 @@
-
+```
 {
 	"info": {
-		"_postman_id": "7a7e98e4-eae4-485c-a400-832cd89c5a4c",
-		"name": "otp_sso",
+		"_postman_id": "49d4402e-24c6-45d7-9f0e-e5ecd094b9ea",
+		"name": "otp_sso Copy",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -22,7 +22,7 @@
 					}
 				],
 				"url": {
-					"raw": "https://sso2.viettel.vn/v2/otp-request?username=4811889&locale=vi",
+					"raw": "https://sso2.viettel.vn/v2/otp-request?username=123456&locale=vi",
 					"protocol": "https",
 					"host": [
 						"sso2",
@@ -36,7 +36,7 @@
 					"query": [
 						{
 							"key": "username",
-							"value": "4811889"
+							"value": "123456"
 						},
 						{
 							"key": "locale",
@@ -69,12 +69,12 @@
 					"urlencoded": [
 						{
 							"key": "username",
-							"value": "48118888",
+							"value": "123456",
 							"type": "text"
 						},
 						{
 							"key": "otpCode",
-							"value": " 382079",
+							"value": "382079",
 							"type": "text"
 						}
 					],
@@ -129,12 +129,12 @@
 					"urlencoded": [
 						{
 							"key": "username",
-							"value": "481188",
+							"value": "123456",
 							"type": "text"
 						},
 						{
 							"key": "password",
-							"value": "PhoCo@0209",
+							"value": "test123",
 							"type": "text"
 						}
 					]
@@ -156,6 +156,6 @@
 			},
 			"response": []
 		}
-	],
-	"protocolProfileBehavior": {}
+	]
 }
+```
