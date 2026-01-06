@@ -6,165 +6,125 @@ namespace OCA\SvgSanitizer\Listener;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\Http\Client\IClientService;
-use OCP\ILogger;
-use OCP\Files\Node;
+use Psr\Log\LoggerInterface;
+
 use OCP\Files\File;
 use OCP\Files\ForbiddenException;
-use OCP\Exceptions\AbortedEventException;
 
-// Upload/FS events
-use OCP\Files\Events\Node\BeforeNodeCreatedEvent;
-use OCP\Files\Events\Node\BeforeNodeWrittenEvent;
-use OCP\Files\Events\Node\BeforeNodeRenamedEvent;
-
-// Download events (optional)
+use OCP\Files\Events\Node\NodeWrittenEvent;
 use OCP\Files\Events\BeforeDirectFileDownloadEvent;
-use OCP\Files\Events\BeforeZipCreatedEvent;
 
 class SvgSanitizeListener implements IEventListener {
 
-	private IClientService $clientService;
-	private ILogger $logger;
+    private IClientService $clientService;
+    private LoggerInterface $logger;
 
-	public function __construct(IClientService $clientService, ILogger $logger) {
-		$this->clientService = $clientService;
-		$this->logger = $logger;
-	}
+    // Hardcode cho nhanh; nếu muốn configurable bằng occ thì mình gửi thêm đoạn đọc app config
+    private string $endpoint = 'http://svg-sanitizer:3000/sanitize';
 
-	public function handle(Event $event): void {
-		// ===== 1) Chặn rename (chunk upload .part -> .svg) =====
-		if ($event instanceof BeforeNodeRenamedEvent) {
-			// Trường hợp rename: node cũ có thể là .part, node mới là .svg
-			// API event có thể khác theo version -> xử lý "best-effort" bằng method_exists
-			$targetName = null;
-			if (method_exists($event, 'getTargetName')) {
-				$targetName = (string)$event->getTargetName();
-			} elseif (method_exists($event, 'getTargetPath')) {
-				$targetName = basename((string)$event->getTargetPath());
-			}
+    public function __construct(IClientService $clientService, LoggerInterface $logger) {
+        $this->clientService = $clientService;
+        $this->logger = $logger;
+    }
 
-			if ($targetName !== null && str_ends_with(strtolower($targetName), '.svg')) {
-				$this->logger->warning('SVG_SANITIZER: rename to svg detected: ' . $targetName);
-				// Không có content để sanitize ở đây (rename only), nên để BeforeNodeWrittenEvent xử lý.
-				// Nhưng nếu bạn muốn "cấm rename thành .svg" luôn, thì uncomment 2 dòng dưới:
-				// $this->abort($event, 'SVG blocked: rename to .svg not allowed');
-				// return;
-			}
-			return;
-		}
+    public function handle(Event $event): void {
 
-		// ===== 2) Chặn upload/overwrite (created/written) =====
-		if ($event instanceof BeforeNodeCreatedEvent || $event instanceof BeforeNodeWrittenEvent) {
-			if (!method_exists($event, 'getNode')) {
-				return;
-			}
+        // ===== 1) Sau khi ghi xong file: đọc content và chặn =====
+        if ($event instanceof NodeWrittenEvent) {
+            $node = $event->getNode();
 
-			/** @var Node $node */
-			$node = $event->getNode();
+            if (!($node instanceof File)) {
+                return;
+            }
 
-			// chỉ xử lý File
-			if (!($node instanceof File)) {
-				return;
-			}
+            if (strtolower((string)$node->getExtension()) !== 'svg') {
+                return;
+            }
 
-			// check extension
-			$ext = strtolower((string)$node->getExtension());
-			if ($ext !== 'svg') {
-				return;
-			}
+            $name = $node->getName();
 
-			$this->logger->warning('SVG_SANITIZER: triggered for ' . $node->getName());
+            // Size limit (1MB)
+            $size = (int)$node->getSize();
+            if ($size > 1024 * 1024) {
+                $this->logger->warning("SVG_SANITIZER: too large -> delete {$name}");
+                $node->delete();
+                throw new ForbiddenException('SVG blocked: too large');
+            }
 
-			// giới hạn size 1MB
-			$size = (int)$node->getSize();
-			if ($size > 1024 * 1024) {
-				$this->logger->warning('SVG_SANITIZER: too large -> block ' . $node->getName());
-				$this->abort($event, 'SVG blocked: too large');
-				return;
-			}
+            // Đọc content (lúc này đã tồn tại thật)
+            $svg = (string)$node->getContent();
 
-			// đọc content (lưu ý: một số backend/luồng chunk có thể chưa có full content ở created)
-			$svg = (string)$node->getContent();
-			if ($svg === '') {
-				// Nếu created event chưa có content, written event sẽ bắt lại.
-				$this->logger->debug('SVG_SANITIZER: empty content at this stage for ' . $node->getName());
-				return;
-			}
+            // Chặn ngay nếu có <script ...> (không phụ thuộc service)
+            if ($this->containsScript($svg)) {
+                $this->logger->warning("SVG_SANITIZER: <script> detected -> delete {$name}");
+                $node->delete();
+                throw new ForbiddenException('SVG blocked: script tag detected');
+            }
 
-			// call sanitizer service
-			$client = $this->clientService->newClient();
-			try {
-				$resp = $client->post('http://svg-sanitizer:3000/sanitize', [
-					'headers' => ['Content-Type' => 'image/svg+xml'],
-					'body' => $svg,
-					'timeout' => 3,
-				]);
-			} catch (\Throwable $e) {
-				$this->logger->error('SVG_SANITIZER: sanitizer request failed: ' . $e->getMessage());
-				$this->abort($event, 'SVG blocked: sanitize service error');
-				return;
-			}
+            // Gọi sanitizer service (optional nhưng bạn yêu cầu)
+            try {
+                $client = $this->clientService->newClient();
+                $resp = $client->post($this->endpoint, [
+                    'headers' => ['Content-Type' => 'image/svg+xml'],
+                    'body' => $svg,
+                    'timeout' => 5,
+                ]);
+                $data = json_decode((string)$resp->getBody(), true);
+            } catch (\Throwable $e) {
+                // Policy: sanitizer lỗi => chặn
+                $this->logger->error("SVG_SANITIZER: sanitizer call failed -> delete {$name}. Err=" . $e->getMessage());
+                $node->delete();
+                throw new ForbiddenException('SVG blocked: sanitizer unreachable');
+            }
 
-			$data = json_decode((string)$resp->getBody(), true);
+            if (!is_array($data) || empty($data['ok']) || !array_key_exists('clean', $data)) {
+                $this->logger->error("SVG_SANITIZER: invalid sanitizer response -> delete {$name}");
+                $node->delete();
+                throw new ForbiddenException('SVG blocked: sanitize failed');
+            }
 
-			if (!is_array($data) || empty($data['ok']) || !isset($data['clean'])) {
-				$this->logger->error('SVG_SANITIZER: sanitizer invalid response -> block ' . $node->getName());
-				$this->abort($event, 'SVG blocked: sanitize failed');
-				return;
-			}
+            if (!empty($data['dirty'])) {
+                $this->logger->warning("SVG_SANITIZER: sanitizer marked dirty -> delete {$name}");
+                $node->delete();
+                throw new ForbiddenException('SVG blocked: malicious content');
+            }
 
-			if (!empty($data['dirty'])) {
-				$this->logger->warning('SVG_SANITIZER: malicious SVG -> block ' . $node->getName());
-				$this->abort($event, 'SVG blocked: malicious content');
-				return;
-			}
+            // Ghi đè bản clean (nếu service có normalize/remove gì đó)
+            $node->putContent((string)$data['clean']);
+            $this->logger->warning("SVG_SANITIZER: sanitized OK {$name}");
 
-			// ghi đè bản clean
-			$node->putContent((string)$data['clean']);
-			$this->logger->warning('SVG_SANITIZER: sanitized OK ' . $node->getName());
-			return;
-		}
+            return;
+        }
 
-		// ===== 3) Optional: chặn download trực tiếp =====
-		if ($event instanceof BeforeDirectFileDownloadEvent) {
-			// API event có thể cung cấp node/file theo nhiều method, nên check method_exists
-			$node = null;
-			if (method_exists($event, 'getNode')) {
-				$node = $event->getNode();
-			} elseif (method_exists($event, 'getFile')) {
-				$node = $event->getFile();
-			}
+        // ===== 2) Optional: chặn download SVG luôn (hoặc tùy policy) =====
+        if ($event instanceof BeforeDirectFileDownloadEvent) {
+            $node = null;
 
-			if ($node instanceof File && strtolower((string)$node->getExtension()) === 'svg') {
-				$this->logger->warning('SVG_SANITIZER: block direct download ' . $node->getName());
-				$this->abort($event, 'SVG blocked: download denied');
-			}
-			return;
-		}
+            if (method_exists($event, 'getNode')) {
+                $node = $event->getNode();
+            } elseif (method_exists($event, 'getFile')) {
+                $node = $event->getFile();
+            }
 
-		// ===== 4) Optional: chặn download zip (folder/multi-file) =====
-		if ($event instanceof BeforeZipCreatedEvent) {
-			// Doc: có thể abort bằng cách set successful=false (tuỳ implementation)  [oai_citation:3‡Nextcloud](https://docs.nextcloud.com/server/stable/developer_manual/basics/_available_events_ocp.html?utm_source=chatgpt.com)
-			// Ở đây chặn thẳng tất cả zip download nếu bạn muốn (hoặc tự kiểm danh sách file nếu event expose).
-			$this->logger->warning('SVG_SANITIZER: zip download detected (optional block)');
-			// Nếu bạn muốn block luôn zip download:
-			// if (method_exists($event, 'setSuccessful')) { $event->setSuccessful(false); }
-			// else { $this->abort($event, 'ZIP blocked'); }
-			return;
-		}
-	}
+            if ($node instanceof File && strtolower((string)$node->getExtension()) === 'svg') {
+                // Nếu bạn chỉ muốn chặn SVG có script thì:
+                // - đọc content và check containsScript rồi throw
+                // Nhưng download event có thể tốn tài nguyên, nên mặc định chặn download SVG luôn để an toàn.
+                $this->logger->warning("SVG_SANITIZER: block direct download of SVG: " . $node->getName());
+                throw new ForbiddenException('SVG download blocked');
+            }
 
-	private function abort(Event $event, string $message): void {
-		$ex = new ForbiddenException($message);
+            return;
+        }
+    }
 
-		// Node before-events thường có abortOperation (since 28.0.0)  [oai_citation:4‡Nextcloud Server](https://nextcloud-server.netlify.app/classes/ocp-files-events-node-beforenodedeletedevent?utm_source=chatgpt.com)
-		if (method_exists($event, 'abortOperation')) {
-			// Nextcloud khuyến nghị AbortedEventException, nhưng abortOperation vẫn hoạt động.
-			$event->abortOperation($ex);
-			return;
-		}
-
-		// fallback
-		throw new AbortedEventException($ex);
-	}
+    private function containsScript(string $svg): bool {
+        // Chặn <script ...> (case-insensitive) + các dạng script tag có namespace
+        if (preg_match('/<\s*(?:svg:)?script\b/i', $svg)) {
+            return true;
+        }
+        // Nếu bạn muốn chặn luôn event handler kiểu onload=, onclick= thì bật thêm:
+        // if (preg_match('/\bon\w+\s*=\s*["\']?/i', $svg)) return true;
+        return false;
+    }
 }
