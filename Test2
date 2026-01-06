@@ -1,3 +1,11 @@
+curl -v -X POST "http://svg-sanitizer:3000/sanitize" \
+  -H "Content-Type: image/svg+xml" \
+  --data-binary '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>'
+
+curl -v -X POST "http://svg-sanitizer:3000/sanitize" \
+  -H "Content-Type: image/svg+xml" \
+  --data-binary '<svg xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10"/></svg>'
+
 <?php
 declare(strict_types=1);
 
